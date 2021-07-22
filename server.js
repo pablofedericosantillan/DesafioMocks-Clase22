@@ -1,6 +1,7 @@
 const express = require('express');
 const handlebars = require('express-handlebars');
 const productos = require('./api/productos');
+const facker = require('./api/Faker');
 
 // creo una app de tipo express
 const app = express();
@@ -21,12 +22,22 @@ app.set("view engine","hbs");// en esta instruccion registramos nuestro motor
 app.set("views", "./views"); //en esta instruccion especificamos en que carpeta estan las vistas o planillas
 
 
-///0
-router.get("/", (req, res) => {
-    res.render('vista_inicio');
-});
+/*------------Implementacion de Facker-------------------------------*/
 
-// A
+router.get('/vista-test', (req, res) => {
+        let { cant } = req.query;
+        if(cant == 0){
+            res.render('vista', {productos: productos.item, hayProductos: false});
+        }else if(!cant ){
+            cant = 10;
+            res.render('vista', {productos: facker.generarProductos(cant), hayProductos: true});
+        }else{
+            res.render('vista-test', {productos: facker.generarProductos(cant), hayProductos: true});
+        }
+});
+/*------------------------------------------------------------------*/
+
+
 router.get('/listar', (req, res) => {
     if(productos.item.length === 0){
         res.render('vista', {productos: productos.item, hayProductos: false});
@@ -34,18 +45,13 @@ router.get('/listar', (req, res) => {
         res.render('vista', {productos: productos.item, hayProductos: true});
     }
 });
-
-//B
 router.get('/listar/:id', (req, res) => {
-    //res.json(productos.BuscarId(req.params.id)) 
     if(productos.item.length === 0 || req.params.id > productos.item.length  ){
         res.render('vista_id', {productos: [productos.BuscarId(req.params.id)], hayProductos: false});
     }else{
         res.render('vista_id', {productos: [productos.BuscarId(req.params.id)], hayProductos: true});
     }
 });
-
-//C
 router.get('/guardar', (req, res) => {
     res.render('index_guardar');
 });
@@ -53,23 +59,19 @@ router.post('/guardar', (req, res) => {
 productos.item=productos.guardar(req.body);
 res.redirect('/api/productos/guardar');
 });
-
-//D
 router.put('/actualizar/:id', (req, res) => {
     res.send(productos.actualizar(req.body,req.params.id))
     });
-//E 
 router.delete('/borrar/:id', (req, res) => {
     res.send(productos.borrar(req.params.id));
 });
-
 app.use('/api/productos', router);
 
 // pongo a escuchar el servidor en el puerto indicado
 const puerto = 8080;
 
 const server = app.listen(puerto, () => {
-    console.log(`servidor escuchando en http://localhost:${puerto}`);
+    console.log(`servidor escuchando en http://localhost:${puerto}/api/productos/vista-test`);
 });
 
 // en caso de error, avisar
